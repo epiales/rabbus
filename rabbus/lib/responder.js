@@ -85,6 +85,48 @@ Responder.prototype.handle = function(cb){
     that.emit("ready");
     console.log("listening for", messageType, "on", queue);
     that.handler = rabbit.handle(messageType, function(message){
+      var respond = {
+        'success' : function ( response ) {
+
+          message.reply( {
+            'status' : 'success',
+            'data'   : response
+          } );
+
+          that.emit( 'reply' );
+        },
+
+        'error' : function ( message, code, data ) {
+          var reply = {
+            'status'  : 'error',
+            'message' : message
+          };
+
+          if ( code !== undefined ) {
+            reply.code = code;
+          }
+
+          if ( data !== undefined ) {
+            reply.data = data;
+          }
+
+          message.reply( reply );
+
+          that.emit( 'reply' );
+        },
+
+        'fail' : function ( response ) {
+
+          message.reply( {
+            'status' : 'fail',
+            'data'   : response
+          } );
+
+          that.emit( 'reply' );
+
+        }
+
+      };
       function respond(response){
         message.reply(response);
         that.emit("reply");
